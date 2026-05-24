@@ -1,0 +1,23 @@
+name: Update PROXYIP
+
+on:
+  schedule:
+    - cron: '0 */12 * * *'
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get fastest IP
+        run: |
+          curl -s "https://cdn.jsdelivr.net/gh/XIU2/CloudflareSpeedTest@master/ip.txt" | head -1 | cut -d'/' -f1 > best.txt
+          BEST_IP=$(cat best.txt)
+          echo "BEST_IP=$BEST_IP" >> $GITHUB_ENV
+      
+      - name: Send to Worker API
+        run: |
+          curl -X POST "https://plain-forest-7953.w2700681.workers.dev/api/proxyip" \
+            -H "Authorization: Bearer xkL9mN3pQrT5vY7wZ2aB4cD6eF8gH1jK" \
+            -H "Content-Type: text/plain" \
+            -d "${{ env.BEST_IP }}"
